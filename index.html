@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SBC Camera Calculator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <title>Advanced IP Camera & SBC Resource Calculator</title>
     <style>
         :root {
             --primary: #2563eb;
-            --secondary: #475569;
-            --background: #f8fafc;
             --surface: #ffffff;
+            --background: #f8fafc;
+            --border: #e2e8f0;
             --text: #1e293b;
+            --disabled: #f1f5f9;
         }
 
         body {
@@ -28,7 +28,7 @@
             margin: 0 auto;
         }
 
-        .card {
+        .section-card {
             background: var(--surface);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -36,209 +36,372 @@
             margin-bottom: 20px;
         }
 
-        .grid {
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-item input[type="radio"] {
+            width: 1.2rem;
+            height: 1.2rem;
         }
 
         select, input {
             width: 100%;
-            padding: 8px;
-            margin: 4px 0;
-            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
             border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        input[type="number"] {
+            width: calc(100% - 1rem);
+        }
+
+        input:disabled {
+            background: var(--disabled);
+            cursor: not-allowed;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .result-box {
+            background: var(--disabled);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .result-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+            color: var(--primary);
         }
 
         button {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 0.75rem 1.5rem;
             border-radius: 4px;
+            font-size: 1rem;
             cursor: pointer;
-            font-weight: 500;
+            transition: opacity 0.2s;
         }
 
         button:hover {
             opacity: 0.9;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background: #f1f5f9;
-        }
-
-        .results {
-            margin-top: 20px;
-        }
-
-        .chart-container {
-            height: 400px;
-            margin: 20px 0;
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            background: #fef3c7;
+            color: #92400e;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>SBC Camera Calculator</h1>
+        <h1>Advanced IP Camera & SBC Resource Calculator</h1>
         
-        <div class="grid">
-            <div class="card">
-                <h2>Board Selection</h2>
-                <select id="boardSelect">
-                    <option value="">Select a board...</option>
-                </select>
-                
-                <div id="boardSpecs" class="results"></div>
+        <div class="section-card">
+            <div class="section-title">Camera Stream Settings</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Video Codec</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="MJPEG" id="mjpeg">
+                            <label for="mjpeg">MJPEG</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="MPEG4" id="mpeg4">
+                            <label for="mpeg4">MPEG-4</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="H264" id="h264">
+                            <label for="h264">H.264</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="H265" id="h265" checked>
+                            <label for="h265">H.265</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Resolution</label>
+                    <select id="resolution">
+                        <option value="176x120">QCIF (176x120)</option>
+                        <option value="352x240">CIF (352x240)</option>
+                        <option value="704x240">2CIF (704x240)</option>
+                        <option value="704x480">4CIF (704x480)</option>
+                        <option value="640x480">VGA (640x480)</option>
+                        <option value="1280x720">HD 720p (1280x720)</option>
+                        <option value="1920x1080">Full HD (1920x1080)</option>
+                        <option value="1280x1024">1.3 Megapixel (1280x1024)</option>
+                        <option value="1600x1200">2 Megapixel (1600x1200)</option>
+                        <option value="2048x1536">3 Megapixel (2048x1536)</option>
+                        <option value="2592x1944" selected>5 Megapixel (2592x1944)</option>
+                        <option value="3840x2160">4K UHD (3840x2160)</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="card">
-                <h2>Camera Settings</h2>
-                <select id="resolution">
-                    <option value="480p">480p</option>
-                    <option value="720p">720p</option>
-                    <option value="1080p">1080p</option>
-                    <option value="4k">4K</option>
-                </select>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Bitrate Mode</label>
+                    <select id="bitrateMode">
+                        <option value="VBR" selected>VBR</option>
+                        <option value="CBR">CBR</option>
+                    </select>
+                </div>
 
-                <select id="protocol">
-                    <option value="rtsp">RTSP</option>
-                    <option value="rtmp">RTMP</option>
-                    <option value="hls">HLS</option>
-                    <option value="webrtc">WebRTC</option>
-                    <option value="mjpeg">MJPEG</option>
-                </select>
+                <div class="form-group">
+                    <label>Video Quality</label>
+                    <select id="quality">
+                        <option value="highest" selected>Highest</option>
+                        <option value="high">High</option>
+                        <option value="normal">Normal</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
 
-                <select id="codec">
-                    <option value="h264">H.264</option>
-                    <option value="h265">H.265</option>
-                </select>
+                <div class="form-group">
+                    <label>GOP (Group of Pictures)</label>
+                    <select id="gop">
+                        <option value="30" selected>30</option>
+                        <option value="60">60</option>
+                        <option value="90">90</option>
+                    </select>
+                </div>
 
-                <input type="number" id="fps" value="10" min="1" max="60" placeholder="FPS">
+                <div class="form-group">
+                    <label>FPS per Camera</label>
+                    <select id="fps">
+                        <option value="30" selected>30</option>
+                        <option value="25">25</option>
+                        <option value="20">20</option>
+                        <option value="15">15</option>
+                        <option value="10">10</option>
+                        <option value="5">5</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Results</h2>
-            <button onclick="calculate()">Calculate</button>
-            <div id="results" class="results"></div>
+        <div class="section-card">
+            <div class="section-title">System Configuration</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>SBC Model</label>
+                    <select id="sbcModel">
+                        <option value="rock5a">ROCK 5A (16GB)</option>
+                        <option value="rock5b">ROCK 5B (8GB)</option>
+                        <option value="rpi4">Raspberry Pi 4 (8GB)</option>
+                        <option value="orangepi5">Orange Pi 5 (16GB)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Number of Cameras</label>
+                    <input type="number" id="cameraCount" value="1" min="1" max="64">
+                </div>
+
+                <div class="form-group">
+                    <label>Network Interface</label>
+                    <select id="networkInterface">
+                        <option value="1">1 Gbps Ethernet</option>
+                        <option value="2.5">2.5 Gbps Ethernet</option>
+                        <option value="0.3">WiFi 5 (300 Mbps)</option>
+                        <option value="0.6">WiFi 6 (600 Mbps)</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>Comparison Chart</h2>
-            <div class="chart-container">
-                <canvas id="comparisonChart"></canvas>
+        <div class="section-card">
+            <div class="section-title">Storage Configuration</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Recording Hours per Day</label>
+                    <select id="recordHours">
+                        <option value="24" selected>24 Hours</option>
+                        <option value="12">12 Hours</option>
+                        <option value="8">8 Hours</option>
+                        <option value="4">4 Hours</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Storage Retention (Days)</label>
+                    <input type="number" id="storageDays" value="7" min="1" max="365">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <button onclick="calculateRequirements()">Calculate Requirements</button>
+            
+            <div id="results" style="display: none;">
+                <div class="results-grid">
+                    <div class="result-box">
+                        <div class="result-label">Bandwidth per Camera</div>
+                        <div class="result-value" id="bandwidthPerCamera">-</div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Total Bandwidth Required</div>
+                        <div class="result-value" id="totalBandwidth">-</div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Storage per Camera (Daily)</div>
+                        <div class="result-value" id="storagePerCamera">-</div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Total Storage Required</div>
+                        <div class="result-value" id="totalStorage">-</div>
+                    </div>
+                </div>
+
+                <div class="results-grid" style="margin-top: 1rem;">
+                    <div class="result-box">
+                        <div class="result-label">CPU Usage</div>
+                        <div class="result-value" id="cpuUsage">-</div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div class="result-label">RAM Usage</div>
+                        <div class="result-value" id="ramUsage">-</div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Network Utilization</div>
+                        <div class="result-value" id="networkUtilization">-</div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Hardware Decoder Usage</div>
+                        <div class="result-value" id="decoderUsage">-</div>
+                    </div>
+                </div>
+
+                <div id="warnings" class="alert" style="display: none;"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let boardData;
-        let chart;
+        // Configuration constants
+        const CODEC_EFFICIENCY = {
+            'MJPEG': 10.0,
+            'MPEG4': 2.0,
+            'H264': 1.0,
+            'H265': 0.7
+        };
 
-        // Fetch and load JSON data
-        fetch('devices.json')
-            .then(response => response.json())
-            .then(data => {
-                boardData = data;
-                initializeBoardSelect();
-            });
+        const QUALITY_FACTORS = {
+            'highest': 1.5,
+            'high': 1.2,
+            'normal': 1.0,
+            'low': 0.8
+        };
 
-        function initializeBoardSelect() {
-            const select = document.getElementById('boardSelect');
-            Object.entries(boardData.boards).forEach(([key, board]) => {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = board.name;
-                select.appendChild(option);
-            });
-
-            select.addEventListener('change', updateBoardSpecs);
-        }
-
-        function updateBoardSpecs() {
-            const boardId = document.getElementById('boardSelect').value;
-            const board = boardData.boards[boardId];
-            
-            if (!board) return;
-
-            document.getElementById('boardSpecs').innerHTML = `
-                <table>
-                    <tr><td>CPU:</td><td>${board.cpu}</td></tr>
-                    <tr><td>RAM:</td><td>${board.ram}GB</td></tr>
-                    <tr><td>NPU:</td><td>${board.npu} TOPS</td></tr>
-                    <tr><td>LAN:</td><td>${board.lan}Gbps</td></tr>
-                    <tr><td>WiFi:</td><td>${board.wifi}</td></tr>
-                </table>
-            `;
-        }
-
-        function calculate() {
-            const boardId = document.getElementById('boardSelect').value;
-            const resolution = document.getElementById('resolution').value;
-            const protocol = document.getElementById('protocol').value;
-            const codec = document.getElementById('codec').value;
-            const fps = parseInt(document.getElementById('fps').value);
-
-            const board = boardData.boards[boardId];
-            const resolutionData = boardData.resolutions[resolution];
-            const protocolData = boardData.protocols[protocol];
-            const codecData = boardData.codecs[codec];
-
-            if (!board || !resolutionData || !protocolData || !codecData) {
-                alert('Please select all options');
-                return;
+        const SBC_SPECS = {
+            'rock5a': {
+                name: 'ROCK 5A',
+                ram: 16,
+                maxDecoders: 8,
+                maxBandwidth: 2500,
+                cpuPower: 100
+            },
+            'rock5b': {
+                name: 'ROCK 5B',
+                ram: 8,
+                maxDecoders: 8,
+                maxBandwidth: 2500,
+                cpuPower: 100
+            },
+            'rpi4': {
+                name: 'Raspberry Pi 4',
+                ram: 8,
+                maxDecoders: 4,
+                maxBandwidth: 1000,
+                cpuPower: 60
+            },
+            'orangepi5': {
+                name: 'Orange Pi 5',
+                ram: 16,
+                maxDecoders: 8,
+                maxBandwidth: 2500,
+                cpuPower: 100
             }
+        };
 
-            // Calculate maximum cameras based on different constraints
-            const networkLimit = calculateNetworkLimit(board, resolutionData, protocolData, codecData, fps);
-            const ramLimit = calculateRamLimit(board, resolutionData);
-            const cpuLimit = calculateCpuLimit(board, resolution);
-            const maxCameras = Math.floor(Math.min(networkLimit, ramLimit, cpuLimit));
+        function calculateRequirements() {
+            // Get input values
+            const resolution = document.getElementById('resolution').value;
+            const [width, height] = resolution.split('x').map(Number);
+            const codec = document.querySelector('input[name="codec"]:checked').value;
+            const quality = document.getElementById('quality').value;
+            const fps = Number(document.getElementById('fps').value);
+            const cameraCount = Number(document.getElementById('cameraCount').value);
+            const sbcModel = document.getElementById('sbcModel').value;
+            const networkSpeed = Number(document.getElementById('networkInterface').value);
+            const recordHours = Number(document.getElementById('recordHours').value);
+            const storageDays = Number(document.getElementById('storageDays').value);
 
-            // Update results
-            document.getElementById('results').innerHTML = `
-                <table>
-                    <tr><th>Constraint</th><th>Max Cameras</th></tr>
-                    <tr><td>Network (${board.lan}Gbps)</td><td>${Math.floor(networkLimit)}</td></tr>
-                    <tr><td>RAM (${board.ram}GB)</td><td>${Math.floor(ramLimit)}</td></tr>
-                    <tr><td>CPU/Decoder</td><td>${Math.floor(cpuLimit)}</td></tr>
-                    <tr><th>Final Maximum</th><th>${maxCameras}</th></tr>
-                </table>
-            `;
+            // Calculate base bitrate (Mbps)
+            let baseBitrate = (width * height * fps) / (8 * 1024 * 1024);
+            baseBitrate *= CODEC_EFFICIENCY[codec];
+            baseBitrate *= QUALITY_FACTORS[quality];
 
-            updateChart(boardId, resolution, protocol, codec, fps);
-        }
+            // Calculate bandwidth
+            const bandwidthPerCamera = baseBitrate;
+            const totalBandwidth = bandwidthPerCamera * cameraCount;
 
-        function calculateNetworkLimit(board, resolutionData, protocolData, codecData, fps) {
-            const bitrate = resolutionData[`bitrate_${codec}`];
-            const networkBandwidth = board.lan * 1000; // Convert to Mbps
-            return (networkBandwidth * 0.8) / (bitrate * protocolData.overhead * fps);
-        }
-
-        function calculateRamLimit(board, resolutionData) {
-            const systemRam = 2000; // 2GB for system
-            const availableRam = (board.ram * 1024) - systemRam;
-            return availableRam / resolutionData.ram_usage;
-        }
-
-        function calculateCpuLimit(board, resolution) {
-            return board.decoder[resolution] || 1;
-        }
-
-        function updateChart(boardId, resolution, protocol, codec, fps) {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            
-            if (chart) {
+            // Calculate storage
+            const storagePerDay = (bandwidthPerCamera * 3600 * recordHours * 0.125); // GB per day
