@@ -142,6 +142,44 @@ To add a new SBC board, update the `sbc-devices.json` file:
 }
 ```
 
+
+This expanded JSON includes:
+
+1. Additional Boards:
+- Raspberry Pi 5
+- NVIDIA Jetson Orin Nano
+- ODROID-N2+
+- ASUS Tinker Edge R
+- NanoPi R6S
+- LicheePi 4A
+
+2. Detailed Specifications:
+- CPU configurations
+- RAM capacity
+- NPU capabilities
+- Network interfaces
+- Video decoder capabilities
+- Power requirements
+- Maximum camera support
+- Available features
+
+3. Additional Data:
+- Codec efficiency ratios
+- Quality factors
+- Resolution scaling factors
+
+Each board's specifications include:
+- Detailed CPU information
+- Memory capacity
+- AI/NPU capabilities
+- Networking options
+- Video processing capabilities
+- Power consumption
+- Price information
+- Maximum supported cameras
+- Available features (PCIe, USB3, eMMC, NVMe)
+
+
 ### Customizing Calculations
 Calculation parameters can be adjusted in `script.js`:
 ```javascript
