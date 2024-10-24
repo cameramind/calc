@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBC Camera Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #475569;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin: 4px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f1f5f9;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SBC Camera Calculator</h1>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>Board Selection</h2>
+                <select id="boardSelect">
+                    <option value="">Select a board...</option>
+                </select>
+                
+                <div id="boardSpecs" class="results"></div>
+            </div>
+
+            <div class="card">
+                <h2>Camera Settings</h2>
+                <select id="resolution">
+                    <option value="480p">480p</option>
+                    <option value="720p">720p</option>
+                    <option value="1080p">1080p</option>
+                    <option value="4k">4K</option>
+                </select>
+
+                <select id="protocol">
+                    <option value="rtsp">RTSP</option>
+                    <option value="rtmp">RTMP</option>
+                    <option value="hls">HLS</option>
+                    <option value="webrtc">WebRTC</option>
+                    <option value="mjpeg">MJPEG</option>
+                </select>
+
+                <select id="codec">
+                    <option value="h264">H.264</option>
+                    <option value="h265">H.265</option>
+                </select>
+
+                <input type="number" id="fps" value="10" min="1" max="60" placeholder="FPS">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Results</h2>
+            <button onclick="calculate()">Calculate</button>
+            <div id="results" class="results"></div>
+        </div>
+
+        <div class="card">
+            <h2>Comparison Chart</h2>
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let boardData;
+        let chart;
+
+        // Fetch and load JSON data
+        fetch('sbc-camera-data.json')
+            .then(response => response.json())
+            .then(data => {
+                boardData = data;
+                initializeBoardSelect();
+            });
+
+        function initializeBoardSelect() {
+            const select = document.getElementById('boardSelect');
+            Object.entries(boardData.boards).forEach(([key, board]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = board.name;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', updateBoardSpecs);
+        }
+
+        function updateBoardSpecs() {
+            const boardId = document.getElementById('boardSelect').value;
+            const board = boardData.boards[boardId];
+            
+            if (!board) return;
+
+            document.getElementById('boardSpecs').innerHTML = `
+                <table>
+                    <tr><td>CPU:</td><td>${board.cpu}</td></tr>
+                    <tr><td>RAM:</td><td>${board.ram}GB</td></tr>
+                    <tr><td>NPU:</td><td>${board.npu} TOPS</td></tr>
+                    <tr><td>LAN:</td><td>${board.lan}Gbps</td></tr>
+                    <tr><td>WiFi:</td><td>${board.wifi}</td></tr>
+                </table>
+            `;
+        }
+
+        function calculate() {
+            const boardId = document.getElementById('boardSelect').value;
+            const resolution = document.getElementById('resolution').value;
+            const protocol = document.getElementById('protocol').value;
+            const codec = document.getElementById('codec').value;
+            const fps = parseInt(document.getElementById('fps').value);
+
+            const board = boardData.boards[boardId];
+            const resolutionData = boardData.resolutions[resolution];
+            const protocolData = boardData.protocols[protocol];
+            const codecData = boardData.codecs[codec];
+
+            if (!board || !resolutionData || !protocolData || !codecData) {
+                alert('Please select all options');
+                return;
+            }
+
+            // Calculate maximum cameras based on different constraints
+            const networkLimit = calculateNetworkLimit(board, resolutionData, protocolData, codecData, fps);
+            const ramLimit = calculateRamLimit(board, resolutionData);
+            const cpuLimit = calculateCpuLimit(board, resolution);
+            const maxCameras = Math.floor(Math.min(networkLimit, ramLimit, cpuLimit));
+
+            // Update results
+            document.getElementById('results').innerHTML = `
+                <table>
+                    <tr><th>Constraint</th><th>Max Cameras</th></tr>
+                    <tr><td>Network (${board.lan}Gbps)</td><td>${Math.floor(networkLimit)}</td></tr>
+                    <tr><td>RAM (${board.ram}GB)</td><td>${Math.floor(ramLimit)}</td></tr>
+                    <tr><td>CPU/Decoder</td><td>${Math.floor(cpuLimit)}</td></tr>
+                    <tr><th>Final Maximum</th><th>${maxCameras}</th></tr>
+                </table>
+            `;
+
+            updateChart(boardId, resolution, protocol, codec, fps);
+        }
+
+        function calculateNetworkLimit(board, resolutionData, protocolData, codecData, fps) {
+            const bitrate = resolutionData[`bitrate_${codec}`];
+            const networkBandwidth = board.lan * 1000; // Convert to Mbps
+            return (networkBandwidth * 0.8) / (bitrate * protocolData.overhead * fps);
+        }
+
+        function calculateRamLimit(board, resolutionData) {
+            const systemRam = 2000; // 2GB for system
+            const availableRam = (board.ram * 1024) - systemRam;
+            return availableRam / resolutionData.ram_usage;
+        }
+
+        function calculateCpuLimit(board, resolution) {
+            return board.decoder[resolution] || 1;
+        }
+
+        function updateChart(boardId, resolution, protocol, codec, fps) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            if (chart) {
