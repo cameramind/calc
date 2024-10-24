@@ -184,6 +184,17 @@ For support, please:
 
 ## Screenshots
 
+[JSON DATA](https://cameramind.github.io/calc/devices.json)
+![image](https://github.com/user-attachments/assets/b1ffef90-faa8-4185-a8ea-fb76dcc787b8)
+
+
+[SBC Comparison Chart](https://cameramind.github.io/calc/chart.html)
+![image](https://github.com/user-attachments/assets/7cd2b08a-076c-4b30-9303-08206bfd24c1)
+
+
+[IP Camera Resource Calculator](https://cameramind.github.io/calc/)
+![image](https://github.com/user-attachments/assets/d460bd16-88e2-43cc-8860-ffa9259374c6)
+
 
 ## Version History
 - 1.0.0: Initial release
