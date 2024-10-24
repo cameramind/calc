@@ -1,5 +1,4 @@
 // script.js
-
 class CameraCalculator {
     constructor() {
         this.boardsData = null;
@@ -20,143 +19,146 @@ class CameraCalculator {
 
     async initializeApp() {
         try {
-            const response = await fetch('data/devices.json');
+            const response = await fetch('data/sbc-devices.json');
             this.boardsData = await response.json();
             this.initializeBoardSelect();
             this.setupEventListeners();
+            // Initialize with default values
+            this.updateCalculations();
         } catch (error) {
             console.error('Failed to load board data:', error);
             this.showError('Failed to load board data. Please refresh the page.');
         }
     }
 
-    initializeBoardSelect() {
-        const select = document.getElementById('boardSelect');
-        Object.entries(this.boardsData.boards).forEach(([key, board]) => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = `${board.name} (${board.ram}GB RAM)`;
-            select.appendChild(option);
-        });
-    }
-
     setupEventListeners() {
-        // Add input event listeners to all form elements
-        const formElements = document.querySelectorAll('input, select');
-        formElements.forEach(element => {
-            if (element.type === 'radio') {
-                element.addEventListener('change', () => this.debounceCalculate());
+        // Monitor all form inputs for changes
+        const formInputs = document.querySelectorAll('input, select');
+        formInputs.forEach(input => {
+            const updateHandler = () => this.handleInputChange(input);
+            
+            if (input.type === 'radio') {
+                input.addEventListener('change', updateHandler);
             } else {
-                element.addEventListener('input', () => this.debounceCalculate());
-                element.addEventListener('change', () => this.debounceCalculate());
+                input.addEventListener('input', updateHandler);
+                input.addEventListener('change', updateHandler);
             }
         });
 
         // Special handling for board selection
         document.getElementById('boardSelect').addEventListener('change', () => {
             this.updateBoardSpecs();
-            this.calculate();
+            this.updateCalculations();
         });
-
-        // Initialize debounce timer
-        this.debounceTimer = null;
     }
 
-    debounceCalculate(delay = 300) {
+    handleInputChange(input) {
+        // Validate input if needed
+        if (input.type === 'number') {
+            const value = parseFloat(input.value);
+            const min = parseFloat(input.min);
+            const max = parseFloat(input.max);
+
+            if (value < min) input.value = min;
+            if (value > max) input.value = max;
+        }
+
+        // Debounce the update
+        this.debounceUpdate();
+    }
+
+    debounceUpdate(delay = 300) {
         clearTimeout(this.debounceTimer);
-        this.debounceTimer = setTimeout(() => this.calculate(), delay);
+        this.debounceTimer = setTimeout(() => this.updateCalculations(), delay);
     }
 
-    updateBoardSpecs() {
-        const boardId = document.getElementById('boardSelect').value;
-        if (!boardId) {
-            document.getElementById('boardSpecs').style.display = 'none';
+    updateCalculations() {
+        const input = this.getInputValues();
+        const warnings = this.validateInputs(input);
+
+        // Always show results, but with warnings if needed
+        if (warnings.length > 0) {
+            this.showWarnings(warnings);
+            this.clearResults();
             return;
         }
 
-        const board = this.boardsData.boards[boardId];
-        document.getElementById('boardSpecs').style.display = 'block';
+        try {
+            const board = this.boardsData.boards[input.boardId];
+            if (!board) {
+                this.clearResults();
+                return;
+            }
 
-        // Update board specifications display
-        this.updateElement('specCpu', board.cpu);
-        this.updateElement('specRam', `${board.ram} GB`);
-        this.updateElement('specNetwork', `${board.lan}Gbps + ${board.wifi}`);
-        this.updateElement('specNpu', `${board.npu} TOPS`);
-    }
+            const [width, height] = input.resolution.split('x').map(Number);
 
-    updateElement(elementId, value) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = value;
+            // Calculate all requirements
+            const bandwidthPerCamera = this.calculateBitrate(width, height, input.fps, input.codec, input.quality);
+            const totalBandwidth = bandwidthPerCamera * input.cameraCount;
+            const storagePerDay = this.calculateStorage(totalBandwidth, input.recordHours, 1, input.cameraCount);
+            const totalStorage = storagePerDay * input.storageDays;
+            const ramUsage = this.calculateRamUsage(width, height, input.cameraCount);
+
+            const results = {
+                boardId: input.boardId,
+                bandwidthPerCamera,
+                totalBandwidth,
+                storagePerDay,
+                totalStorage,
+                ramUsage,
+                resolution: input.resolution,
+                cameraCount: input.cameraCount
+            };
+
+            this.updateResults(results);
+            this.checkResourceLimits(results, board);
+
+        } catch (error) {
+            console.error('Calculation error:', error);
+            this.showError('Error during calculations. Please check your inputs.');
         }
     }
 
-    getInputValues() {
-        return {
-            boardId: document.getElementById('boardSelect').value,
-            resolution: document.getElementById('resolution').value,
-            fps: Number(document.getElementById('fps').value),
-            codec: document.querySelector('input[name="codec"]:checked')?.value || 'H265',
-            cameraCount: Number(document.getElementById('cameraCount').value),
-            recordHours: Number(document.getElementById('recordHours').value),
-            storageDays: Number(document.getElementById('storageDays').value),
-            quality: document.getElementById('quality').value,
-            bitrateMode: document.getElementById('bitrateMode').value
-        };
-    }
-
-    validateInputs(input) {
-        const warnings = [];
-        
-        if (!input.boardId) {
-            warnings.push('Please select a board');
-            return warnings;
-        }
-
-        if (input.cameraCount < 1) {
-            warnings.push('Camera count must be at least 1');
-        }
-
-        if (input.fps < 1) {
-            warnings.push('FPS must be at least 1');
-        }
-
-        if (input.storageDays < 1) {
-            warnings.push('Storage days must be at least 1');
-        }
-
-        return warnings;
-    }
-
-    calculateBitrate(width, height, fps, codec, quality) {
-        let baseBitrate = (width * height * fps) / (8 * 1024 * 1024);
-        baseBitrate *= this.CODEC_EFFICIENCY[codec];
-        baseBitrate *= this.QUALITY_FACTORS[quality];
-        return baseBitrate;
-    }
-
-    calculateStorage(bitrate, hours, days, cameraCount) {
-        const dailyStorage = (bitrate * 3600 * hours * 0.125); // GB per day
-        return dailyStorage * days * cameraCount;
-    }
-
-    calculateRamUsage(width, height, cameraCount) {
-        const ramPerCamera = (width * height * 4) / (1024 * 1024 * 1024); // GB
-        return (ramPerCamera * cameraCount) + 2; // +2GB for system
+    clearResults() {
+        const placeholders = document.querySelectorAll('.result-value, .required, .available, .status');
+        placeholders.forEach(element => {
+            element.textContent = '-';
+            if (element.classList.contains('status')) {
+                element.className = 'status';
+            }
+        });
     }
 
     updateResults(results) {
-        // Show results container
-        document.getElementById('results').style.display = 'block';
+        // Update bandwidth results with animations
+        this.animateValue('bandwidthPerCamera', results.bandwidthPerCamera, 'Mbps');
+        this.animateValue('totalBandwidth', results.totalBandwidth, 'Mbps');
+        this.animateValue('storagePerDay', results.storagePerDay, 'GB');
+        this.animateValue('totalStorage', results.totalStorage, 'GB');
 
-        // Update bandwidth results
-        this.updateElement('bandwidthPerCamera', `${results.bandwidthPerCamera.toFixed(2)} Mbps`);
-        this.updateElement('totalBandwidth', `${results.totalBandwidth.toFixed(2)} Mbps`);
-        this.updateElement('storagePerDay', `${results.storagePerDay.toFixed(1)} GB`);
-        this.updateElement('totalStorage', `${results.totalStorage.toFixed(1)} GB`);
-
-        // Update resource utilization table
+        // Update resource table
         this.updateResourceTable(results);
+    }
+
+    animateValue(elementId, newValue, unit) {
+        const element = document.getElementById(elementId);
+        const currentValue = parseFloat(element.textContent) || 0;
+        const duration = 500; // Animation duration in ms
+        const steps = 20; // Number of steps in animation
+        const increment = (newValue - currentValue) / steps;
+        let step = 0;
+
+        const animate = () => {
+            step++;
+            const value = currentValue + (increment * step);
+            element.textContent = `${value.toFixed(2)} ${unit}`;
+
+            if (step < steps) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        animate();
     }
 
     updateResourceTable(results) {
