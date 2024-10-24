@@ -29,8 +29,7 @@ class CameraCalculator {
             // Initialize with default values
             this.updateCalculations();
         } catch (error) {
-            console.error('Failed to load board data:', error);
-            this.showError('Failed to load board data. Please check the console for details.');
+            this.handleError(error, 'Failed to load board data. Please check your internet connection and try again.');
         }
     }
 
@@ -187,8 +186,7 @@ class CameraCalculator {
         try {
             const board = this.boardsData.boards[input.boardId];
             if (!board) {
-                this.clearResults();
-                return;
+                throw new Error('Invalid board selected');
             }
 
             const [width, height] = input.resolution.split('x').map(Number);
@@ -214,8 +212,7 @@ class CameraCalculator {
             this.updateResults(results);
 
         } catch (error) {
-            console.error('Calculation error:', error);
-            this.showError('Error during calculations. Please check your inputs.');
+            this.handleError(error, 'Error during calculations. Please check your inputs and try again.');
         }
     }
 
@@ -306,6 +303,11 @@ class CameraCalculator {
     getMaxCameras(board, resolution) {
         const isFullHD = resolution === '1920x1080';
         return board.max_cameras[isFullHD ? '1080p' : '4k'];
+    }
+
+    handleError(error, userMessage) {
+        console.error('Error:', error);
+        this.showError(userMessage || 'An unexpected error occurred. Please try again.');
     }
 }
 

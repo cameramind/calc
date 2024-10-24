@@ -1,5 +1,7 @@
 #!/bin/bash
 
+date +%Y-%m-%d > date.txt
+
 # Function to extract the latest version from CHANGELOG.md
 get_latest_version() {
     grep -m 1 "## \[" CHANGELOG.md | sed 's/## \[//;s/\].*//'

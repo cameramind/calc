@@ -1,4 +1,16 @@
-# Logs
+.idea
+.env
+venv
+.prompt
+domains.db
+.date
+date.txt
+prompt.txt
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
 logs
 *.log
 npm-debug.log*
