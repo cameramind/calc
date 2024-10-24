@@ -1,0 +1,20 @@
+{
+  "codec_efficiency": {
+    "MJPEG": 10.0,
+    "MPEG4": 2.0,
+    "H264": 1.0,
+    "H265": 0.7
+  },
+  "quality_factors": {
+    "highest": 1.5,
+    "high": 1.2,
+    "medium": 1.0,
+    "low": 0.8
+  },
+  "resolution_factors": {
+    "480p": 1.0,
+    "720p": 2.25,
+    "1080p": 5.0,
+    "4k": 20.0
+  }
+}

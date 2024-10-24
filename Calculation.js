@@ -1,8 +1,8 @@
 if (typeof module !== 'undefined' && module.exports) {
-    const UIUtils = require('./UIUtils');
+    const Gui = require('./Gui');
     const LoggingUtils = require('./LoggingUtils');
 }
-class CalculationUtils {
+class Calculation {
     constructor() {
         this.boardsData = null;
         this.CODEC_EFFICIENCY = {
@@ -21,13 +21,34 @@ class CalculationUtils {
 
     }
 
+    setCameraCalculator(calculator) {
+        this.calculator = calculator;
+    }
+
+    setGui(gui) {
+        this.gui = gui;
+    }
+
+    initializeApp(boardsData) {
+        try {
+            this.boardsData = boardsData;
+            this.gui.initializeBoardSelect();
+            this.gui.setupEventListeners();
+            // Initialize with default values
+            this.updateCalculations();
+        } catch (error) {
+            LoggingUtils.handleError(error, 'Failed to load board data. Please check your internet connection and try again.');
+        }
+    }
+
+
     static updateCalculations(calculator) {
         const input = calculator.getInputValues();
-        const warnings = UIUtils.validateInputs(input);
+        const warnings = Gui.validateInputs(input);
 
         if (warnings.length > 0) {
             LoggingUtils.showWarnings(warnings);
-            UIUtils.clearResults();
+            Gui.clearResults();
             return;
         }
 
@@ -75,60 +96,7 @@ class CalculationUtils {
         }
     }
 
-    static updateResults(results, calculator) {
-        UIUtils.updateElement('bandwidthPerCamera', `${results.bandwidthPerCamera.toFixed(3)} Mbps`);
-        UIUtils.updateElement('totalBandwidth', `${results.totalBandwidth.toFixed(3)} Mbps`);
-        UIUtils.updateElement('storagePerDay', `${results.storagePerDay.toFixed(2)} GB`);
-        UIUtils.updateElement('totalAvailableStorage', `${results.totalAvailableStorage.toFixed(2)} GB`);
 
-        // Update stream parameters
-        UIUtils.updateElement('streamResolution', results.resolution);
-        UIUtils.updateElement('streamFps', results.fps);
-        UIUtils.updateElement('streamCodec', results.codec);
-        UIUtils.updateElement('streamQuality', results.quality);
-        UIUtils.updateElement('averageFrameSize', `${results.averageFrameSize.toFixed(2)} KB`);
-
-        const storageStatusElement = document.getElementById('storageStatus');
-        if (storageStatusElement) {
-            storageStatusElement.textContent = results.storageSufficient ? '✅ Sufficient' : '❌ Insufficient';
-            storageStatusElement.className = results.storageSufficient ? 'status-ok' : 'status-error';
-        }
-
-        this.updateResourceTable(results, calculator);
-    }
-
-    static updateResourceTable(results, calculator) {
-        const board = calculator.boardsData.boards[results.boardId];
-
-        // Network utilization
-        UIUtils.updateTableRow('networkRow', {
-            required: `${results.totalBandwidth.toFixed(2)} Mbps`,
-            available: `${board.lan * 1000} Mbps`,
-            status: results.totalBandwidth > board.lan * 1000
-        });
-
-        // RAM utilization
-        UIUtils.updateTableRow('ramRow', {
-            required: `${(results.ramUsage / 1024).toFixed(2)} GB`,
-            available: `${board.ram} GB`,
-            status: results.ramUsage > board.ram * 1024
-        });
-
-        // CPU/Decoder utilization
-        const maxCameras = this.getMaxCameras(board, results.resolution);
-        UIUtils.updateTableRow('cpuRow', {
-            required: `${results.cameraCount} cameras`,
-            available: `${maxCameras} cameras`,
-            status: results.cameraCount > maxCameras
-        });
-
-        // Storage utilization
-        UIUtils.updateTableRow('storageRow', {
-            required: `${results.totalStorageRequired.toFixed(2)} GB`,
-            available: `${(results.totalAvailableStorage).toFixed(2)} GB`,
-            status: results.totalStorageRequired > results.totalAvailableStorage
-        });
-    }
 
     static getMaxCameras(board, resolution) {
         const isFullHD = resolution === '1920x1080';
@@ -137,5 +105,5 @@ class CalculationUtils {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = CalculationUtils;
+    module.exports = Calculation;
 }

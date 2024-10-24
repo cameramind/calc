@@ -1,26 +1,41 @@
-
+if (typeof module !== 'undefined' && module.exports) {
+    const Gui = require('./Gui');
+    const LoggingUtils = require('./LoggingUtils');
+    const CameraCalculator = require('./CameraCalculator');
+}
 // Initialize calculator when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const response = await fetch('data/devices.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        LoggingUtils.log('DOM fully loaded and parsed');
+        const calculator = new CameraCalculator();
+        await calculator.loadDevices();
 
-        let cameraCalculator = new CameraCalculator();
-        // window.cameraCalculator.setInitializer(initializer);
-        // window.cameraCalculator.setDevices(response.json());
-        let initializer = new Initializer();
-        initializer.setCameraCalculator(cameraCalculator);
-        initializer.setDevices(response.json());
+        // Set up event listeners for form inputs
+        setupEventListeners(calculator);
 
-        window.cameraCalculator = cameraCalculator;
-
+        // Perform initial calculation
+        calculator.calculate();
     } catch (error) {
-        LoggingUtils.handleError(error, 'Failed to load board data. Please check your internet connection and try again.');
+        LoggingUtils.handleError(error, 'An error occurred while initializing the application. Please check the console for more details.');
     }
-
 });
 
+function setupEventListeners(calculator) {
+    // Board selection
+    document.getElementById('boardSelect').addEventListener('change', () => calculator.calculate());
 
+    // Camera settings
+    document.querySelectorAll('input[name="codec"]').forEach(radio => {
+        radio.addEventListener('change', () => calculator.calculate());
+    });
+    document.getElementById('resolution').addEventListener('change', () => calculator.calculate());
+    document.getElementById('bitrateMode').addEventListener('change', () => calculator.calculate());
+    document.getElementById('quality').addEventListener('change', () => calculator.calculate());
+    document.getElementById('fps').addEventListener('change', () => calculator.calculate());
+    document.getElementById('cameraCount').addEventListener('input', () => calculator.calculate());
+
+    // Storage settings
+    document.getElementById('recordHours').addEventListener('change', () => calculator.calculate());
+    document.getElementById('storageDays').addEventListener('input', () => calculator.calculate());
+    document.getElementById('m2Storage').addEventListener('change', () => calculator.calculate());
+}

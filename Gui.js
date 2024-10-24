@@ -1,4 +1,8 @@
-class UIUtils {
+class Gui {
+    static setCalculation(calculationValues) {
+        this.calculationValues = calculationValues;
+    }
+
     static validateInputs(input) {
         const warnings = [];
 
@@ -16,6 +20,61 @@ class UIUtils {
         }
 
         return warnings;
+    }
+
+    static updateResults(results, calculator) {
+        this.updateElement('bandwidthPerCamera', `${results.bandwidthPerCamera.toFixed(3)} Mbps`);
+        this.updateElement('totalBandwidth', `${results.totalBandwidth.toFixed(3)} Mbps`);
+        this.updateElement('storagePerDay', `${results.storagePerDay.toFixed(2)} GB`);
+        this.updateElement('totalAvailableStorage', `${results.totalAvailableStorage.toFixed(2)} GB`);
+
+        // Update stream parameters
+        this.updateElement('streamResolution', results.resolution);
+        this.updateElement('streamFps', results.fps);
+        this.updateElement('streamCodec', results.codec);
+        this.updateElement('streamQuality', results.quality);
+        this.updateElement('averageFrameSize', `${results.averageFrameSize.toFixed(2)} KB`);
+
+        const storageStatusElement = document.getElementById('storageStatus');
+        if (storageStatusElement) {
+            storageStatusElement.textContent = results.storageSufficient ? '✅ Sufficient' : '❌ Insufficient';
+            storageStatusElement.className = results.storageSufficient ? 'status-ok' : 'status-error';
+        }
+
+        this.updateResourceTable(results, calculator);
+    }
+
+    static updateResourceTable(results, calculator) {
+        const board = calculator.boardsData.boards[results.boardId];
+
+        // Network utilization
+        this.updateTableRow('networkRow', {
+            required: `${results.totalBandwidth.toFixed(2)} Mbps`,
+            available: `${board.lan * 1000} Mbps`,
+            status: results.totalBandwidth > board.lan * 1000
+        });
+
+        // RAM utilization
+        this.updateTableRow('ramRow', {
+            required: `${(results.ramUsage / 1024).toFixed(2)} GB`,
+            available: `${board.ram} GB`,
+            status: results.ramUsage > board.ram * 1024
+        });
+
+        // CPU/Decoder utilization
+        const maxCameras = this.getMaxCameras(board, results.resolution);
+        this.updateTableRow('cpuRow', {
+            required: `${results.cameraCount} cameras`,
+            available: `${maxCameras} cameras`,
+            status: results.cameraCount > maxCameras
+        });
+
+        // Storage utilization
+        this.updateTableRow('storageRow', {
+            required: `${results.totalStorageRequired.toFixed(2)} GB`,
+            available: `${(results.totalAvailableStorage).toFixed(2)} GB`,
+            status: results.totalStorageRequired > results.totalAvailableStorage
+        });
     }
 
     static updateElement(elementId, value) {
@@ -52,23 +111,6 @@ class UIUtils {
                 element.className = 'status';
             }
         });
-    }
-
-
-    setCameraCalculator(calculator) {
-        this.calculator = calculator;
-    }
-
-    initializeApp(boardsData) {
-        try {
-            this.boardsData = boardsData;
-            this.initializeBoardSelect();
-            this.setupEventListeners();
-            // Initialize with default values
-            this.updateCalculations();
-        } catch (error) {
-            LoggingUtils.handleError(error, 'Failed to load board data. Please check your internet connection and try again.');
-        }
     }
 
 
@@ -144,7 +186,7 @@ class UIUtils {
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
         }
-        this.debounceTimer = setTimeout(() => CalculationUtils.updateCalculations(this), delay);
+        this.debounceTimer = setTimeout(() => Calculation.updateCalculations(this), delay);
     }
 
     updateBoardSpecs() {
@@ -161,10 +203,10 @@ class UIUtils {
 
         boardSpecs.style.display = 'block';
 
-        UIUtils.updateElement('specCpu', board.cpu);
-        UIUtils.updateElement('specRam', `${board.ram} GB`);
-        UIUtils.updateElement('specNetwork', `${board.lan}Gbps + ${board.wifi}`);
-        UIUtils.updateElement('specNpu', `${board.npu} TOPS`);
+        this.updateElement('specCpu', board.cpu);
+        this.updateElement('specRam', `${board.ram} GB`);
+        this.updateElement('specNetwork', `${board.lan}Gbps + ${board.wifi}`);
+        this.updateElement('specNpu', `${board.npu} TOPS`);
     }
 
     getInputValues() {
@@ -184,5 +226,5 @@ class UIUtils {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = UIUtils;
+    module.exports = Gui;
 }
