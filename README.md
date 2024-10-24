@@ -109,7 +109,7 @@ Checks against:
 ## Development
 
 ### Adding New SBC Boards
-To add a new SBC board, update the `sbc-devices.json` file:
+To add a new SBC board, update the `devices.json` file:
 
 ```json
 {
@@ -143,7 +143,7 @@ To add a new SBC board, update the `sbc-devices.json` file:
 ```
 
 
-This expanded JSON includes:
+This `devices.json` JSON includes:
 
 1. Additional Boards:
 - Raspberry Pi 5
