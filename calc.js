@@ -19,7 +19,7 @@ class CameraCalculator {
 
     async initializeApp() {
         try {
-            const response = await fetch('data/sbc-devices.json');
+            const response = await fetch('data/devices.json');
             this.boardsData = await response.json();
             this.initializeBoardSelect();
             this.setupEventListeners();
