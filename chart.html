@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBC Comparison Chart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --border: #e2e8f0;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--background);
+            font-weight: 600;
+        }
+
+        .feature-yes {
+            color: #16a34a;
+        }
+
+        .feature-no {
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>SBC Comparison Chart</h1>
+            
+            <div class="controls">
+                <select id="metricSelect" onchange="updateChart()">
+                    <option value="ram">RAM (GB)</option>
+                    <option value="npu">NPU (TOPS)</option>
+                    <option value="price">Price ($)</option>
+                    <option value="power">Power Consumption (W)</option>
+                    <option value="max_cameras.1080p">Max 1080p Cameras</option>
+                    <option value="max_cameras.4k">Max 4K Cameras</option>
+                </select>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+
+            <div id="tableContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let boardData;
+        let chart;
+
+        // Color scheme for the charts
+        const colors = {
+            primary: '#2563eb',
+            secondary: '#64748b',
+            success: '#16a34a',
+            danger: '#dc2626',
+            background: '#f8fafc'
+        };
+
+        // Load board data
+        fetch('devices.json')
+            .then(response => response.json())
+            .then(data => {
+                boardData = data;
+                createChart();
+                createComparisonTable();
+            });
+
+        function getValueByPath(obj, path) {
+            return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        }
+
+        function createChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            const metric = document.getElementById('metricSelect').value;
+            
+            const labels = Object.values(boardData.boards).map(board => board.name);
+            const values = Object.values(boardData.boards).map(board => getValueByPath(board, metric));
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: metric.split('.').pop().toUpperCase(),
+                        data: values,
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            const metric = document.getElementById('metricSelect').value;
+            const values = Object.values(boardData.boards).map(board => getValueByPath(board, metric));
+            
+            chart.data.datasets[0].data = values;
+            chart.data.datasets[0].label = metric.split('.').pop().toUpperCase();
+            chart.update();
+        }
+
+        function createComparisonTable() {
+            const tableContainer = document.getElementById('tableContainer');
+            const boards = Object.values(boardData.boards);
+            
+            let html = `
+                <table>
+                    <tr>
+                        <th>Feature</th>
+                        ${boards.map(board => `<th>${board.name}</th>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>CPU</td>
+                        ${boards.map(board => `<td>${board.cpu}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>RAM (GB)</td>
+                        ${boards.map(board => `<td>${board.ram}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>NPU (TOPS)</td>
+                        ${boards.map(board => `<td>${board.npu}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Network</td>
+                        ${boards.map(board => `<td>${board.lan}Gbps + ${board.wifi}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Max 1080p Cameras</td>
+                        ${boards.map(board => `<td>${board.max_cameras["1080p"]}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Max 4K Cameras</td>
+                        ${boards.map(board => `<td>${board.max_cameras["4k"]}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>PCIe</td>
+                        ${boards.map(board => `<td><span class="feature-${board.features.pcie ? 'yes' : 'no'}">●</span></td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>USB 3.0</td>
+                        ${boards.map(board => `<td><span class="feature-${board.features.usb3 ? 'yes' : 'no'}">●</span></td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>eMMC</td>
+                        ${boards.map(board => `<td><span class="feature-${board.features.emmc ? 'yes' : 'no'}">●</span></td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>NVMe</td>
+                        ${boards.map(board => `<td><span class="feature-${board.features.nvme ? 'yes' : 'no'}">●</span></td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Price ($)</td>
+                        ${boards.map(board => `<td>${board.price}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Power (W)</td>
+                        ${boards.map(board => `<td>${board.power}</td>`).join('')}
+                    </tr>
+                </table>
+            `;
+            
+            tableContainer.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
