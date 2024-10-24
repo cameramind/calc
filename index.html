@@ -141,29 +141,29 @@
 
         <!-- Results Section -->
         <div class="card">
-            <button id="calculateBtn" onclick="cameraCalculator.calculate()">Calculate Requirements</button>
-            
-            <div id="results" style="display: none;">
+        
+            <div class="card-header">Results</div>
+            <div id="results">
                 <!-- Bandwidth Results -->
                 <div class="result-grid">
                     <div class="result-box">
                         <div class="result-label">Bandwidth per Camera</div>
-                        <div class="result-value" id="bandwidthPerCamera"></div>
+                        <div class="result-value" id="bandwidthPerCamera">-</div>
                     </div>
                     <div class="result-box">
                         <div class="result-label">Total Bandwidth Required</div>
-                        <div class="result-value" id="totalBandwidth"></div>
+                        <div class="result-value" id="totalBandwidth">-</div>
                     </div>
                     <div class="result-box">
                         <div class="result-label">Storage per Day</div>
-                        <div class="result-value" id="storagePerDay"></div>
+                        <div class="result-value" id="storagePerDay">-</div>
                     </div>
                     <div class="result-box">
                         <div class="result-label">Total Storage Required</div>
-                        <div class="result-value" id="totalStorage"></div>
+                        <div class="result-value" id="totalStorage">-</div>
                     </div>
                 </div>
-
+        
                 <!-- Resource Usage Table -->
                 <table class="limits-table">
                     <thead>
@@ -177,24 +177,25 @@
                     <tbody>
                         <tr id="networkRow">
                             <td>Network Bandwidth</td>
-                            <td class="required"></td>
-                            <td class="available"></td>
-                            <td class="status"></td>
+                            <td class="required">-</td>
+                            <td class="available">-</td>
+                            <td class="status">-</td>
                         </tr>
                         <tr id="ramRow">
                             <td>RAM Usage</td>
-                            <td class="required"></td>
-                            <td class="available"></td>
-                            <td class="status"></td>
+                            <td class="required">-</td>
+                            <td class="available">-</td>
+                            <td class="status">-</td>
                         </tr>
                         <tr id="cpuRow">
-                            <td>CPU Usage</td>
-                            <td class="required"></td>
-                            <td class="available"></td>
-                            <td class="status"></td>
+                            <td>CPU/Decoder Usage</td>
+                            <td class="required">-</td>
+                            <td class="available">-</td>
+                            <td class="status">-</td>
                         </tr>
                     </tbody>
                 </table>
+
 
                 <!-- Warnings -->
                 <div id="warnings" class="alert alert-warning" style="display: none;"></div>
