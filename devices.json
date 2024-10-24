@@ -1,0 +1,189 @@
+{
+  "boards": {
+    "rpi4": {
+      "name": "Raspberry Pi 4",
+      "cpu": "Quad-core Cortex-A72 1.8GHz",
+      "ram": 8,
+      "npu": 0,
+      "lan": 1,
+      "wifi": "Wi-Fi 5",
+      "decoder": {
+        "1080p": 4,
+        "4k": 1
+      },
+      "price": 55
+    },
+    "rpi5": {
+      "name": "Raspberry Pi 5",
+      "cpu": "Quad-core Cortex-A76 2.4GHz",
+      "ram": 8,
+      "npu": 0,
+      "lan": 1,
+      "wifi": "Wi-Fi 6",
+      "decoder": {
+        "1080p": 6,
+        "4k": 1
+      },
+      "price": 65
+    },
+    "rock5a": {
+      "name": "ROCK 5A",
+      "cpu": "4xA76 2.4GHz + 4xA55 1.8GHz",
+      "ram": 16,
+      "npu": 6,
+      "lan": 2.5,
+      "wifi": "Wi-Fi 6",
+      "decoder": {
+        "1080p": 8,
+        "4k": 2
+      },
+      "price": 99
+    },
+    "rock5b": {
+      "name": "ROCK 5B",
+      "cpu": "4xA76 2.4GHz + 4xA55 1.8GHz",
+      "ram": 8,
+      "npu": 6,
+      "lan": 2.5,
+      "wifi": "Wi-Fi 6",
+      "decoder": {
+        "1080p": 8,
+        "4k": 2
+      },
+      "price": 89
+    },
+    "orangepi5": {
+      "name": "Orange Pi 5",
+      "cpu": "4xA76 2.4GHz + 4xA55 1.8GHz",
+      "ram": 16,
+      "npu": 6,
+      "lan": 2.5,
+      "wifi": "Wi-Fi 6",
+      "decoder": {
+        "1080p": 8,
+        "4k": 2
+      },
+      "price": 89
+    },
+    "khadas_vim4": {
+      "name": "Khadas VIM4",
+      "cpu": "4xA73 2.2GHz + 4xA53 2.0GHz",
+      "ram": 8,
+      "npu": 5,
+      "lan": 1,
+      "wifi": "Wi-Fi 6",
+      "decoder": {
+        "1080p": 4,
+        "4k": 1
+      },
+      "price": 199
+    },
+    "jetson_nano": {
+      "name": "NVIDIA Jetson Nano",
+      "cpu": "Quad-core ARM A57 1.43GHz",
+      "ram": 4,
+      "npu": 0.5,
+      "lan": 1,
+      "wifi": "None",
+      "decoder": {
+        "1080p": 4,
+        "4k": 1
+      },
+      "price": 149
+    },
+    "beaglebone_ai64": {
+      "name": "BeagleBone AI-64",
+      "cpu": "2xA72 2GHz + 4xA53 1.7GHz",
+      "ram": 4,
+      "npu": 8,
+      "lan": 1,
+      "wifi": "Wi-Fi 5",
+      "decoder": {
+        "1080p": 4,
+        "4k": 1
+      },
+      "price": 199
+    }
+  },
+  "protocols": {
+    "rtsp": {
+      "name": "RTSP",
+      "overhead": 1.1,
+      "cpu_usage": 1.0,
+      "latency": "Low",
+      "reliability": "High"
+    },
+    "rtmp": {
+      "name": "RTMP",
+      "overhead": 1.15,
+      "cpu_usage": 1.1,
+      "latency": "Medium",
+      "reliability": "High"
+    },
+    "hls": {
+      "name": "HLS",
+      "overhead": 1.2,
+      "cpu_usage": 1.2,
+      "latency": "High",
+      "reliability": "Very High"
+    },
+    "webrtc": {
+      "name": "WebRTC",
+      "overhead": 1.05,
+      "cpu_usage": 1.3,
+      "latency": "Very Low",
+      "reliability": "Medium"
+    },
+    "mjpeg": {
+      "name": "MJPEG",
+      "overhead": 3.0,
+      "cpu_usage": 0.8,
+      "latency": "Low",
+      "reliability": "Very High"
+    }
+  },
+  "resolutions": {
+    "480p": {
+      "width": 854,
+      "height": 480,
+      "bitrate_h264": 0.5,
+      "bitrate_h265": 0.35,
+      "ram_usage": 25
+    },
+    "720p": {
+      "width": 1280,
+      "height": 720,
+      "bitrate_h264": 1.0,
+      "bitrate_h265": 0.7,
+      "ram_usage": 50
+    },
+    "1080p": {
+      "width": 1920,
+      "height": 1080,
+      "bitrate_h264": 2.5,
+      "bitrate_h265": 1.75,
+      "ram_usage": 125
+    },
+    "4k": {
+      "width": 3840,
+      "height": 2160,
+      "bitrate_h264": 9.0,
+      "bitrate_h265": 6.3,
+      "ram_usage": 400
+    }
+  },
+  "codecs": {
+    "h264": {
+      "name": "H.264",
+      "efficiency": 1.0,
+      "cpu_usage": 1.0,
+      "compatibility": "Very High"
+    },
+    "h265": {
+      "name": "H.265/HEVC",
+      "efficiency": 0.7,
+      "cpu_usage": 1.3,
+      "compatibility": "High"
+    }
+  }
+}
