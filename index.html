@@ -3,242 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SBC Comparison Chart</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --surface: #ffffff;
-            --background: #f8fafc;
-            --border: #e2e8f0;
-            --text: #1e293b;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            line-height: 1.5;
-            margin: 0;
-            padding: 20px;
-            background: var(--background);
-            color: var(--text);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--surface);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 20px 0;
-        }
-
-        .controls {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        select {
-            padding: 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            background: var(--background);
-            font-weight: 600;
-        }
-
-        .feature-yes {
-            color: #16a34a;
-        }
-
-        .feature-no {
-            color: #dc2626;
-        }
-    </style>
+    <title>IP Camera Resource Calculator</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
+        <h1>IP Camera Resource Calculator</h1>
+
+        <div class="calculator-grid">
+            <!-- Board Section -->
+            <div class="card">
+                <div class="card-header">Board Selection</div>
+                <div class="form-group">
+                    <label for="boardSelect">Select SBC Board</label>
+                    <select id="boardSelect">
+                        <option value="">Choose a board...</option>
+                    </select>
+                </div>
+                <div id="boardSpecs" class="board-specs" style="display: none;">
+                    <div class="spec-grid">
+                        <div class="spec-item">
+                            <span class="spec-label">CPU</span>
+                            <span class="spec-value" id="specCpu"></span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">RAM</span>
+                            <span class="spec-value" id="specRam"></span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Network</span>
+                            <span class="spec-value" id="specNetwork"></span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">NPU</span>
+                            <span class="spec-value" id="specNpu"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Settings -->
+            <div class="card">
+                <div class="card-header">Camera Settings</div>
+                <div class="form-group">
+                    <label>Video Codec</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="MJPEG" id="mjpeg">
+                            <label for="mjpeg">MJPEG</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="MPEG4" id="mpeg4">
+                            <label for="mpeg4">MPEG-4</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="H264" id="h264">
+                            <label for="h264">H.264</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="codec" value="H265" id="h265" checked>
+                            <label for="h265">H.265</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="resolution">Resolution</label>
+                    <select id="resolution">
+                        <option value="176x120">QCIF (176x120)</option>
+                        <option value="352x240">CIF (352x240)</option>
+                        <option value="704x240">2CIF (704x240)</option>
+                        <option value="704x480">4CIF (704x480)</option>
+                        <option value="640x480">VGA (640x480)</option>
+                        <option value="1280x720">HD 720p (1280x720)</option>
+                        <option value="1920x1080" selected>Full HD (1920x1080)</option>
+                        <option value="2592x1944">5 Megapixel (2592x1944)</option>
+                        <option value="3840x2160">4K UHD (3840x2160)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bitrateMode">Bitrate Mode</label>
+                    <select id="bitrateMode">
+                        <option value="VBR" selected>VBR</option>
+                        <option value="CBR">CBR</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quality">Video Quality</label>
+                    <select id="quality">
+                        <option value="highest" selected>Highest</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="fps">FPS per Camera</label>
+                    <select id="fps">
+                        <option value="1">1</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15" selected>15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cameraCount">Number of Cameras</label>
+                    <input type="number" id="cameraCount" value="1" min="1" max="64">
+                </div>
+            </div>
+
+            <!-- Storage Settings -->
+            <div class="card">
+                <div class="card-header">Storage Settings</div>
+                <div class="form-group">
+                    <label for="recordHours">Recording Hours per Day</label>
+                    <select id="recordHours">
+                        <option value="24" selected>24 Hours</option>
+                        <option value="12">12 Hours</option>
+                        <option value="8">8 Hours</option>
+                        <option value="4">4 Hours</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="storageDays">Storage Retention (Days)</label>
+                    <input type="number" id="storageDays" value="30" min="1" max="365">
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
         <div class="card">
-            <h1>SBC Comparison Chart</h1>
+            <button id="calculateBtn" onclick="cameraCalculator.calculate()">Calculate Requirements</button>
             
-            <div class="controls">
-                <select id="metricSelect" onchange="updateChart()">
-                    <option value="ram">RAM (GB)</option>
-                    <option value="npu">NPU (TOPS)</option>
-                    <option value="price">Price ($)</option>
-                    <option value="power">Power Consumption (W)</option>
-                    <option value="max_cameras.1080p">Max 1080p Cameras</option>
-                    <option value="max_cameras.4k">Max 4K Cameras</option>
-                </select>
-            </div>
+            <div id="results" style="display: none;">
+                <!-- Bandwidth Results -->
+                <div class="result-grid">
+                    <div class="result-box">
+                        <div class="result-label">Bandwidth per Camera</div>
+                        <div class="result-value" id="bandwidthPerCamera"></div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-label">Total Bandwidth Required</div>
+                        <div class="result-value" id="totalBandwidth"></div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-label">Storage per Day</div>
+                        <div class="result-value" id="storagePerDay"></div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-label">Total Storage Required</div>
+                        <div class="result-value" id="totalStorage"></div>
+                    </div>
+                </div>
 
-            <div class="chart-container">
-                <canvas id="comparisonChart"></canvas>
-            </div>
+                <!-- Resource Usage Table -->
+                <table class="limits-table">
+                    <thead>
+                        <tr>
+                            <th>Resource</th>
+                            <th>Required</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="networkRow">
+                            <td>Network Bandwidth</td>
+                            <td class="required"></td>
+                            <td class="available"></td>
+                            <td class="status"></td>
+                        </tr>
+                        <tr id="ramRow">
+                            <td>RAM Usage</td>
+                            <td class="required"></td>
+                            <td class="available"></td>
+                            <td class="status"></td>
+                        </tr>
+                        <tr id="cpuRow">
+                            <td>CPU Usage</td>
+                            <td class="required"></td>
+                            <td class="available"></td>
+                            <td class="status"></td>
+                        </tr>
+                    </tbody>
+                </table>
 
-            <div id="tableContainer"></div>
+                <!-- Warnings -->
+                <div id="warnings" class="alert alert-warning" style="display: none;"></div>
+            </div>
         </div>
     </div>
 
-    <script>
-        let boardData;
-        let chart;
-
-        // Color scheme for the charts
-        const colors = {
-            primary: '#2563eb',
-            secondary: '#64748b',
-            success: '#16a34a',
-            danger: '#dc2626',
-            background: '#f8fafc'
-        };
-
-        // Load board data
-        fetch('devices.json')
-            .then(response => response.json())
-            .then(data => {
-                boardData = data;
-                createChart();
-                createComparisonTable();
-            });
-
-        function getValueByPath(obj, path) {
-            return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-        }
-
-        function createChart() {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            const metric = document.getElementById('metricSelect').value;
-            
-            const labels = Object.values(boardData.boards).map(board => board.name);
-            const values = Object.values(boardData.boards).map(board => getValueByPath(board, metric));
-
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: metric.split('.').pop().toUpperCase(),
-                        data: values,
-                        backgroundColor: colors.primary,
-                        borderColor: colors.primary,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateChart() {
-            const metric = document.getElementById('metricSelect').value;
-            const values = Object.values(boardData.boards).map(board => getValueByPath(board, metric));
-            
-            chart.data.datasets[0].data = values;
-            chart.data.datasets[0].label = metric.split('.').pop().toUpperCase();
-            chart.update();
-        }
-
-        function createComparisonTable() {
-            const tableContainer = document.getElementById('tableContainer');
-            const boards = Object.values(boardData.boards);
-            
-            let html = `
-                <table>
-                    <tr>
-                        <th>Feature</th>
-                        ${boards.map(board => `<th>${board.name}</th>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>CPU</td>
-                        ${boards.map(board => `<td>${board.cpu}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>RAM (GB)</td>
-                        ${boards.map(board => `<td>${board.ram}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>NPU (TOPS)</td>
-                        ${boards.map(board => `<td>${board.npu}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Network</td>
-                        ${boards.map(board => `<td>${board.lan}Gbps + ${board.wifi}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Max 1080p Cameras</td>
-                        ${boards.map(board => `<td>${board.max_cameras["1080p"]}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Max 4K Cameras</td>
-                        ${boards.map(board => `<td>${board.max_cameras["4k"]}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>PCIe</td>
-                        ${boards.map(board => `<td><span class="feature-${board.features.pcie ? 'yes' : 'no'}">●</span></td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>USB 3.0</td>
-                        ${boards.map(board => `<td><span class="feature-${board.features.usb3 ? 'yes' : 'no'}">●</span></td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>eMMC</td>
-                        ${boards.map(board => `<td><span class="feature-${board.features.emmc ? 'yes' : 'no'}">●</span></td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>NVMe</td>
-                        ${boards.map(board => `<td><span class="feature-${board.features.nvme ? 'yes' : 'no'}">●</span></td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Price ($)</td>
-                        ${boards.map(board => `<td>${board.price}</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Power (W)</td>
-                        ${boards.map(board => `<td>${board.power}</td>`).join('')}
-                    </tr>
-                </table>
-            `;
-            
-            tableContainer.innerHTML = html;
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
