@@ -150,93 +150,86 @@
     <div class="card">
 
         <div class="card-header">Resources</div>
-        <div id="results">
-            <!-- Bandwidth Results -->
-            <div class="result-grid">
-                <div class="result-box">
-                    <div class="result-label">Bandwidth per Camera</div>
-                    <div class="result-value" id="bandwidthPerCamera">-</div>
-                </div>
-                <div class="result-box">
-                    <div class="result-label">Total Bandwidth Required</div>
-                    <div class="result-value" id="totalBandwidth">-</div>
-                </div>
-                <div class="result-box">
-                    <div class="result-label">Storage per Day</div>
-                    <div class="result-value" id="storagePerDay">-</div>
-                </div>
-            </div>
-
-            <!-- Resource Usage Table -->
-            <table class="limits-table">
-                <thead>
+        <div id="results" class="mt-4">
+            <h3>Calculation Results</h3>
+            <table class="table">
                 <tr>
-                    <th>Resource</th>
-                    <th>Required</th>
-                    <th>Available</th>
-                    <th>Status</th>
+                    <td>Bandwidth per Camera:</td>
+                    <td id="bandwidthPerCamera" class="result-value">-</td>
                 </tr>
-                </thead>
-                <tbody>
+                <tr>
+                    <td>Total Bandwidth:</td>
+                    <td id="totalBandwidth" class="result-value">-</td>
+                </tr>
+                <tr>
+                    <td>Storage per Day:</td>
+                    <td id="storagePerDay" class="result-value">-</td>
+                </tr>
+                <tr>
+                    <td>Total Available Storage:</td>
+                    <td id="totalAvailableStorage" class="result-value">-</td>
+                </tr>
+            </table>
+
+            <h4>Stream Parameters</h4>
+            <table class="table">
+                <tr>
+                    <td>Resolution:</td>
+                    <td id="streamResolution" class="result-value">-</td>
+                </tr>
+                <tr>
+                    <td>FPS:</td>
+                    <td id="streamFps" class="result-value">-</td>
+                </tr>
+                <tr>
+                    <td>Codec:</td>
+                    <td id="streamCodec" class="result-value">-</td>
+                </tr>
+                <tr>
+                    <td>Quality:</td>
+                    <td id="streamQuality" class="result-value">-</td>
+                </tr>
+                <tr>
+                    <td>Average Frame Size:</td>
+                    <td id="averageFrameSize" class="result-value">-</td>
+                </tr>
+            </table>
+
+            <h4>Resource Utilization</h4>
+            <table class="table">
                 <tr id="networkRow">
-                    <td>Network Bandwidth</td>
+                    <td>Network:</td>
                     <td class="required">-</td>
                     <td class="available">-</td>
                     <td class="status">-</td>
                 </tr>
                 <tr id="ramRow">
-                    <td>RAM Usage</td>
+                    <td>RAM:</td>
                     <td class="required">-</td>
                     <td class="available">-</td>
                     <td class="status">-</td>
                 </tr>
                 <tr id="cpuRow">
-                    <td>CPU/Decoder Usage</td>
+                    <td>CPU/Decoder:</td>
                     <td class="required">-</td>
                     <td class="available">-</td>
                     <td class="status">-</td>
                 </tr>
                 <tr id="storageRow">
-                    <td>Storage</td>
+                    <td>Storage:</td>
                     <td class="required">-</td>
                     <td class="available">-</td>
                     <td class="status">-</td>
                 </tr>
-                </tbody>
-
             </table>
-
-            <!-- Stream Parameters -->
-            <div class="card-header">Stream Parameters</div>
-            <div class="result-grid">
-                <div class="result-box">
-                    <div class="result-label">Resolution</div>
-                    <div class="result-value" id="streamResolution">-</div>
-                </div>
-                <div class="result-box">
-                    <div class="result-label">FPS</div>
-                    <div class="result-value" id="streamFps">-</div>
-                </div>
-                <div class="result-box">
-                    <div class="result-label">Codec</div>
-                    <div class="result-value" id="streamCodec">-</div>
-                </div>
-                <div class="result-box">
-                    <div class="result-label">Quality</div>
-                    <div class="result-value" id="streamQuality">-</div>
-                </div>
-                <div class="result-box">
-                    <div class="result-label">Avg Frame Size</div>
-                    <div class="result-value" id="averageFrameSize">-</div>
-                </div>
-            </div>
-
-            <!-- Warnings -->
-            <div id="warnings" class="alert alert-warning" style="display: none;"></div>
         </div>
     </div>
 </div>
 
+<script src="LoggingUtils.js"></script>
+<script src="UIUtils.js"></script>
+<script src="Initializer.js"></script>
+<script src="CalculationUtils.js"></script>
 <script src="CameraCalculator.js"></script>
 <script src="events.js"></script>
 </body>

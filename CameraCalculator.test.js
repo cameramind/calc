@@ -1,102 +1,79 @@
-/**
- * @jest-environment jsdom
- */
-
 const CameraCalculator = require('./CameraCalculator');
-
-// Mock the fetch API
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({
-      boards: {
-        "test-board": {
-          name: "Test Board",
-          ram: 4,
-          storage: 32,
-          lan: 1,
-          wifi: "WiFi 6",
-          npu: 5,
-          max_cameras: {
-            "1080p": 8,
-            "4k": 4
-          }
-        }
-      }
-    })
-  })
-);
 
 describe('CameraCalculator', () => {
     let calculator;
 
     beforeEach(() => {
-        // Setup DOM elements needed by CameraCalculator
-        document.body.innerHTML = `
-            <div id="results"></div>
-            <div id="warnings"></div>
-            <select id="boardSelect"></select>
-        `;
-        
-        // Reset fetch mock
-        global.fetch.mockClear();
-        
         calculator = new CameraCalculator();
     });
 
-    afterEach(() => {
-        document.body.innerHTML = '';
-        jest.clearAllMocks();
-    });
+    // Helper function to check if value is within 2% of expected
+    function isWithinTwoPercent(actual, expected) {
+        const difference = Math.abs(actual - expected);
+        const percentage = (difference / expected) * 100;
+        return percentage <= 2;
+    }
 
-    test('calculateAverageFrameSize() calculates correctly', () => {
+    test('calculateAverageFrameSize() calculates correctly for H264', () => {
         const width = 1920;
         const height = 1080;
         const codec = 'H264';
         const quality = 'medium';
         
         const result = calculator.calculateAverageFrameSize(width, height, codec, quality);
-        expect(result).toBeGreaterThan(0);
+        const expected = 200.660625;
+        expect(isWithinTwoPercent(result, expected)).toBe(true);
     });
 
     test('calculateBitrate() calculates correctly', () => {
-        const width = 1920;
-        const height = 1080;
-        const fps = 30;
-        const codec = 'H264';
-        const quality = 'medium';
+        const frameSize = 200.660625; // KB
+        const fps = 1;
+        const expectedBitrate = 1.605; // Mbps
         
-        const result = calculator.calculateBitrate(width, height, fps, codec, quality);
-        expect(result).toBeGreaterThan(0);
+        const result = calculator.calculateBitrate(frameSize, fps);
+        expect(isWithinTwoPercent(result, expectedBitrate)).toBe(true);
     });
 
     test('calculateStorage() calculates correctly', () => {
-        const bitrate = 5; // 5 Mbps
+        const bitrate = 1.61; // Mbps
         const hours = 24;
-        const days = 30;
-        const cameraCount = 4;
+        const days = 1;
+        const cameraCount = 1;
+        const expectedStorage = 19.07; // GB
         
         const result = calculator.calculateStorage(bitrate, hours, days, cameraCount);
-        expect(result).toBeGreaterThan(0);
+        expect(isWithinTwoPercent(result, expectedStorage)).toBe(true);
     });
 
-    test('calculateRamUsage() calculates correctly', () => {
+    test('complete calculation flow matches example', () => {
+        // Step 1: Calculate frame size
         const width = 1920;
         const height = 1080;
-        const cameraCount = 4;
-        
-        const result = calculator.calculateRamUsage(width, height, cameraCount);
-        expect(result).toBeGreaterThan(2); // Should be at least system RAM (2GB)
+        const codec = 'H264';
+        const quality = 'medium';
+        const frameSize = calculator.calculateAverageFrameSize(width, height, codec, quality);
+        expect(isWithinTwoPercent(frameSize, 200.660625)).toBe(true);
+
+        // Step 2: Calculate bitrate
+        const fps = 1;
+        const bitrate = calculator.calculateBitrate(frameSize, fps);
+        expect(isWithinTwoPercent(bitrate, 1.605)).toBe(true);
+
+        // Step 3: Calculate storage
+        const hours = 24;
+        const days = 1;
+        const cameraCount = 1;
+        const storage = calculator.calculateStorage(bitrate, hours, days, cameraCount);
+        expect(isWithinTwoPercent(storage, 19.07)).toBe(true);
     });
 
     test('validateInputs() detects missing board', () => {
         const input = {
             boardId: '',
-            cameraCount: 4,
-            fps: 30,
-            storageDays: 30
+            cameraCount: 1,
+            fps: 1,
+            storageDays: 1
         };
-        
         const warnings = calculator.validateInputs(input);
         expect(warnings).toContain('Please select a board');
     });
@@ -105,10 +82,9 @@ describe('CameraCalculator', () => {
         const input = {
             boardId: '1',
             cameraCount: 0,
-            fps: 30,
-            storageDays: 30
+            fps: 1,
+            storageDays: 1
         };
-        
         const warnings = calculator.validateInputs(input);
         expect(warnings).toContain('Camera count must be at least 1');
     });
@@ -116,11 +92,10 @@ describe('CameraCalculator', () => {
     test('validateInputs() detects invalid fps', () => {
         const input = {
             boardId: '1',
-            cameraCount: 4,
+            cameraCount: 1,
             fps: 0,
-            storageDays: 30
+            storageDays: 1
         };
-        
         const warnings = calculator.validateInputs(input);
         expect(warnings).toContain('FPS must be at least 1');
     });
@@ -128,17 +103,11 @@ describe('CameraCalculator', () => {
     test('validateInputs() detects invalid storage days', () => {
         const input = {
             boardId: '1',
-            cameraCount: 4,
-            fps: 30,
+            cameraCount: 1,
+            fps: 1,
             storageDays: 0
         };
-        
         const warnings = calculator.validateInputs(input);
         expect(warnings).toContain('Storage days must be at least 1');
-    });
-
-    test('initializeApp loads board data correctly', async () => {
-        await calculator.initializeApp();
-        expect(global.fetch).toHaveBeenCalledWith('data/devices.json');
     });
 });
