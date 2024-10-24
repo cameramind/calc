@@ -22,7 +22,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     },
     "rock5b": {
       "name": "ROCK 5B",
@@ -46,7 +47,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     },
     "rpi4": {
       "name": "Raspberry Pi 4",
@@ -70,7 +72,8 @@
         "usb3": true,
         "emmc": false,
         "nvme": false
-      }
+      },
+      "storage": 0
     },
     "rpi5": {
       "name": "Raspberry Pi 5",
@@ -94,7 +97,8 @@
         "usb3": true,
         "emmc": false,
         "nvme": false
-      }
+      },
+      "storage": 0
     },
     "orangepi5": {
       "name": "Orange Pi 5",
@@ -118,7 +122,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     },
     "khadas_vim4": {
       "name": "Khadas VIM4",
@@ -142,7 +147,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     },
     "jetson_nano": {
       "name": "NVIDIA Jetson Nano",
@@ -166,7 +172,8 @@
         "usb3": true,
         "emmc": false,
         "nvme": false
-      }
+      },
+      "storage": 0
     },
     "jetson_orin_nano": {
       "name": "NVIDIA Jetson Orin Nano",
@@ -190,7 +197,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     },
     "beaglebone_ai64": {
       "name": "BeagleBone AI-64",
@@ -214,7 +222,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": false
-      }
+      },
+      "storage": 0
     },
     "odroid_n2plus": {
       "name": "ODROID-N2+",
@@ -238,7 +247,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": false
-      }
+      },
+      "storage": 0
     },
     "asus_tinker_edge_r": {
       "name": "ASUS Tinker Edge R",
@@ -262,7 +272,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": false
-      }
+      },
+      "storage": 0
     },
     "nanopi_r6s": {
       "name": "NanoPi R6S",
@@ -286,7 +297,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     },
     "licheepi_4a": {
       "name": "LicheePi 4A",
@@ -310,7 +322,8 @@
         "usb3": true,
         "emmc": true,
         "nvme": true
-      }
+      },
+      "storage": 0
     }
   },
   "codec_efficiency": {

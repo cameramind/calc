@@ -14,6 +14,7 @@ class CameraCalculator {
             'medium': 1.0,
             'low': 0.8
         };
+        this.M2_STORAGE_OPTIONS = [128, 256, 512, 1024]; // in GB, 1024 GB = 1 TB
         this.initializeApp();
     }
 
@@ -50,6 +51,18 @@ class CameraCalculator {
                 option.value = key;
                 option.textContent = `${board.name} (${board.ram}GB RAM)`;
                 select.appendChild(option);
+            });
+        }
+
+        // Add M.2 storage select
+        const m2Select = document.getElementById('m2Storage');
+        if (m2Select) {
+            m2Select.innerHTML = '<option value="">No additional storage</option>';
+            this.M2_STORAGE_OPTIONS.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size >= 1024 ? `${size / 1024} TB` : `${size} GB`;
+                m2Select.appendChild(option);
             });
         }
     }
@@ -132,7 +145,8 @@ class CameraCalculator {
             recordHours: Number(document.getElementById('recordHours')?.value) || 24,
             storageDays: Number(document.getElementById('storageDays')?.value) || 30,
             quality: document.getElementById('quality')?.value || 'medium',
-            bitrateMode: document.getElementById('bitrateMode')?.value || 'VBR'
+            bitrateMode: document.getElementById('bitrateMode')?.value || 'VBR',
+            m2Storage: Number(document.getElementById('m2Storage')?.value) || 0
         };
     }
 
@@ -155,11 +169,15 @@ class CameraCalculator {
         return warnings;
     }
 
+    calculateAverageFrameSize(width, height, codec, quality) {
+        const baseSize = (width * height * 3) / 1024; // 24-bit color depth assumed, divided by 1024 to convert to KB
+        const adjustedSize = baseSize / this.CODEC_EFFICIENCY[codec]; // divide by efficiency
+        return adjustedSize * this.QUALITY_FACTORS[quality];
+    }
+
     calculateBitrate(width, height, fps, codec, quality) {
-        let baseBitrate = (width * height * fps) / (8 * 1024 * 1024);
-        baseBitrate *= this.CODEC_EFFICIENCY[codec];
-        baseBitrate *= this.QUALITY_FACTORS[quality];
-        return baseBitrate;
+        const baseBitrate = (width * height * fps) / (8 * 1024 * 1024); // bits to Mbps conversion
+        return (baseBitrate / this.CODEC_EFFICIENCY[codec]) * this.QUALITY_FACTORS[quality]; // divide by efficiency
     }
 
     calculateStorage(bitrate, hours, days, cameraCount) {
@@ -176,7 +194,6 @@ class CameraCalculator {
         const input = this.getInputValues();
         const warnings = this.validateInputs(input);
 
-        // Always show results, but with warnings if needed
         if (warnings.length > 0) {
             this.showWarnings(warnings);
             this.clearResults();
@@ -192,21 +209,32 @@ class CameraCalculator {
             const [width, height] = input.resolution.split('x').map(Number);
 
             // Calculate all requirements
+            const averageFrameSize = this.calculateAverageFrameSize(width, height, input.codec, input.quality);
             const bandwidthPerCamera = this.calculateBitrate(width, height, input.fps, input.codec, input.quality);
             const totalBandwidth = bandwidthPerCamera * input.cameraCount;
             const storagePerDay = this.calculateStorage(totalBandwidth, input.recordHours, 1, input.cameraCount);
-            const totalStorage = storagePerDay * input.storageDays;
+            const totalStorageRequired = storagePerDay * input.storageDays;
             const ramUsage = this.calculateRamUsage(width, height, input.cameraCount);
+
+            const totalAvailableStorage = (board.storage || 0) + input.m2Storage;
+            const storageSufficient = totalAvailableStorage >= totalStorageRequired;
 
             const results = {
                 boardId: input.boardId,
                 bandwidthPerCamera,
                 totalBandwidth,
                 storagePerDay,
-                totalStorage,
+                totalStorageRequired,
                 ramUsage,
                 resolution: input.resolution,
-                cameraCount: input.cameraCount
+                cameraCount: input.cameraCount,
+                m2Storage: input.m2Storage,
+                totalAvailableStorage,
+                storageSufficient,
+                fps: input.fps,
+                codec: input.codec,
+                quality: input.quality,
+                averageFrameSize
             };
 
             this.updateResults(results);
@@ -220,14 +248,27 @@ class CameraCalculator {
         this.updateElement('bandwidthPerCamera', `${results.bandwidthPerCamera.toFixed(2)} Mbps`);
         this.updateElement('totalBandwidth', `${results.totalBandwidth.toFixed(2)} Mbps`);
         this.updateElement('storagePerDay', `${results.storagePerDay.toFixed(1)} GB`);
-        this.updateElement('totalStorage', `${results.totalStorage.toFixed(1)} GB`);
+        this.updateElement('totalAvailableStorage', `${results.totalAvailableStorage.toFixed(1)} GB`);
+
+        // Update stream parameters
+        this.updateElement('streamResolution', results.resolution);
+        this.updateElement('streamFps', results.fps);
+        this.updateElement('streamCodec', results.codec);
+        this.updateElement('streamQuality', results.quality);
+        this.updateElement('averageFrameSize', `${results.averageFrameSize.toFixed(3)} MB`);
+
+        const storageStatusElement = document.getElementById('storageStatus');
+        if (storageStatusElement) {
+            storageStatusElement.textContent = results.storageSufficient ? '✅ Sufficient' : '❌ Insufficient';
+            storageStatusElement.className = results.storageSufficient ? 'status-ok' : 'status-error';
+        }
 
         this.updateResourceTable(results);
     }
 
     updateResourceTable(results) {
         const board = this.boardsData.boards[results.boardId];
-        
+
         // Network utilization
         this.updateTableRow('networkRow', {
             required: `${results.totalBandwidth.toFixed(2)} Mbps`,
@@ -248,6 +289,13 @@ class CameraCalculator {
             required: `${results.cameraCount} cameras`,
             available: `${maxCameras} cameras`,
             status: results.cameraCount > maxCameras
+        });
+
+        // Storage utilization
+        this.updateTableRow('storageRow', {
+            required: `${results.totalStorageRequired.toFixed(1)} GB`,
+            available: `${results.totalAvailableStorage.toFixed(1)} GB`,
+            status: results.totalStorageRequired > results.totalAvailableStorage
         });
     }
 
@@ -311,11 +359,4 @@ class CameraCalculator {
     }
 }
 
-// Initialize calculator when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.cameraCalculator = new CameraCalculator();
-});
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = CameraCalculator;
-}
+module.exports = CameraCalculator;

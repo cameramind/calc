@@ -1,0 +1,16 @@
+{
+  "name": "camera-calculator",
+  "version": "1.0.0",
+  "description": "## Overview The IP Camera Resource Calculator is a web-based tool designed to help system integrators and IT professionals calculate resource requirements for IP camera installations on Single Board Computers (SBCs). It provides accurate estimations for bandwidth, storage, and hardware resource utilization based on different camera configurations and SBC specifications.",
+  "main": "CameraCalculator.js",
+  "scripts": {
+    "test": "jest --env=jsdom"
+  },
+  "keywords": [],
+  "author": "Tom Sapletta",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "jest": "^29.4.3",
+    "jest-environment-jsdom": "^29.4.3"
+  }
+}
