@@ -212,7 +212,6 @@ class CameraCalculator {
             };
 
             this.updateResults(results);
-            this.checkResourceLimits(results, board);
 
         } catch (error) {
             console.error('Calculation error:', error);
@@ -314,3 +313,7 @@ class CameraCalculator {
 document.addEventListener('DOMContentLoaded', () => {
     window.cameraCalculator = new CameraCalculator();
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = CameraCalculator;
+}
